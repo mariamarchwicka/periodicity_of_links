@@ -17,11 +17,12 @@ For a given list of knots [encoded in PD-code](http://katlas.org/wiki/Planar_Dia
 
 -----
 
-
 We tested all knots up to 15 crossings and for periods 3, 5, 7, 9, 11, 13.
 
-## Running the script
 
+
+
+## Running the script
 
 ### Prerequisites
 
@@ -29,12 +30,9 @@ We tested all knots up to 15 crossings and for periods 3, 5, 7, 9, 11, 13.
 
 - For Przytycki's criterion the module [libhomfly](https://github.com/miguelmarco/libhomfly/blob/master/README.md) is needed to calculate HOMFLYPT polynomial. There is also possibility to read saved polynomials from a file (file `homflypt.input` in the repository contains HOMFLYPTY polynomials for some knots).
 
-
-
 ### Input data
 
 Files with PD-codes for all knots up to 15 crossing are available in the repository (`knots_11_15.txt` and `knots_3_10.txt`) and should be saved in the same folder as the script or a path in the `class MySettings` should be adjusted. Similarly, if other input files will be used, settings have to be changed. A correction in parsing or reading functions may be also necessary (`check_11_to_15()`, `check_up_to_10()`, `parse_pd_code()`, `parse_knot_name()`).
-
 
 ### Running in terminal
 
@@ -47,11 +45,21 @@ All results will be saved in a file `results.out`. A line, for example `12a100,3
 
 
 
-## Authors
+## Credits
 
-* **Maria Marchwicka**
-* **Wojciech Politarczyk**
+* **[Wojciech Politarczyk](politarw@amu.edu.pl)** - *implementation of Przytycki's criterion*
+* **[Maria Marchwicka](maria.marchwicka@amu.edu.pl)** -  *integration and rest of the code*
+* **[Maciej Borodzik](mcboro@mimuw.edu.pl)** - *algorithm and tests*
+
+
+
 
 ## License
 
 This project is licensed under the GNU General Public License - see the [LICENSE.md](LICENSE.md) file for details.
+
+
+
+## Contact
+For any questions or remarks please contact us by e-mail message to [maria.marchwicka@amu.edu.pl](maria.marchwicka@amu.edu.pl). We would be happy to hear from you.
+Feel free to ask for any help in case you would like to reuse our script. 
