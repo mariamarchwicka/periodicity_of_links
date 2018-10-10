@@ -27,8 +27,8 @@ class MySettings(object):
 
     def __init__(self):
 
-        self.f_pd_knot_11_15 = os.path.join(os.getcwd(), "knots1115")
-        self.f_knot_up_to_10 = os.path.join(os.getcwd(), "knot_table.txt")
+        self.f_pd_knot_11_15 = os.path.join(os.getcwd(), "knots_11_15.txt")
+        self.f_knot_up_to_10 = os.path.join(os.getcwd(), "knots_3_10.txt")
 
         self.f_homfly_lm_out = os.path.join(os.getcwd(), "homflypt.out")
         self.f_homfly_lm_in = os.path.join(os.getcwd(), "homflypt.input")
@@ -41,14 +41,14 @@ class MySettings(object):
 
         # check only knots from defined set
         self.only_chosen = True
-        # self.only_chosen = False
+        self.only_chosen = False
 
         self.debugging = True
-        # self.debugging = False
+        self.debugging = False
 
         # only if debugging
         self.print_matrices = True
-        # self.print_matrices = False
+        self.print_matrices = False
 
         # only if only_chosen
         self.only_periods_where_borodzik = True
@@ -63,14 +63,14 @@ class MySettings(object):
 
         # saving HOMFLYPT polynomials into self.f_homfly_lm_out
         self.save_homfly = True
-        # self.save_homfly = False
+        self.save_homfly = False
 
         # reuse HOMFLYPT polynomials previously saved
         self.input_file_with_homflypt = True
         # self.input_file_with_homflypt = False
 
         self.check_old_results = True
-        # self.check_old_results = False
+        self.check_old_results = False
 
         if self.input_file_with_homflypt:
             if not os.path.isfile(self.f_homfly_lm_in):
@@ -629,7 +629,6 @@ class PeriodicityTester(object):
         if pd_code is not None:
             self.K = Link(pd_code)
             self.seifert = self.K.seifert_matrix()
-            print self.seifert
         else:
             self.seifert = A
         # delta := Alexander polynomial
