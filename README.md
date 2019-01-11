@@ -36,7 +36,7 @@ Files with PD-codes for all knots up to 15 crossing are available in the reposit
 
 ### Versions
 
-There are two versions of the script in the repository. The version [verbose_periodicity](verbose_periodicity.sage) was used for calculations and tests. The another version - [periodicity.sage](periodicity.sage) - is free of tests fragments and more easy to read.
+There are two versions of the script in the repository. The version [verbose_periodicity.sage](verbose_periodicity.sage) was used for calculations and tests. The another version - [periodicity.sage](periodicity.sage) - is free of tests fragments and more easy to read.
 
 ### Running in terminal
 
