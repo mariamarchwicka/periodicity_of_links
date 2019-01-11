@@ -17,7 +17,7 @@ For a given list of knots [encoded in PD-code](http://katlas.org/wiki/Planar_Dia
 
 -----
 
-We tested all knots up to 15 crossings and for the periodicity 3, 5, 7, 9, 11, 13.
+We tested all knots up to 15 crossings and for the periodicity 3, 5, 7, 9, 11.
 
 
 
