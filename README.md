@@ -17,7 +17,7 @@ For a given list of knots [encoded in PD-code](http://katlas.org/wiki/Planar_Dia
 
 -----
 
-We tested all knots up to 15 crossings and for periods 3, 5, 7, 9, 11, 13.
+We tested all knots up to 15 crossings and for the periodicity 3, 5, 7, 9, 11, 13.
 
 
 
@@ -28,11 +28,15 @@ We tested all knots up to 15 crossings and for periods 3, 5, 7, 9, 11, 13.
 
 - [SageMath 8.1](http://www.sagemath.org).
 
-- For Przytycki's criterion the module [libhomfly](https://github.com/miguelmarco/libhomfly/blob/master/README.md) is needed to calculate HOMFLYPT polynomial. There is also possibility to read saved polynomials from a file (file `homflypt.input` in the repository contains HOMFLYPTY polynomials for some knots).
+- For Przytycki's criterion the module [libhomfly](https://github.com/miguelmarco/libhomfly/blob/master/README.md) is needed to calculate HOMFLYPT polynomial. There is also possibility to read saved polynomials from a file. The file [homflypt.input](homflypt.input) in the repository contains HOMFLYPTY polynomials for some knots, but to make it work properly knots should be analyse in the same order as their polynomials are saved in the file [homflypt.input](homflypt.input).
 
 ### Input data
 
 Files with PD-codes for all knots up to 15 crossing are available in the repository (`knots_11_15.txt` and `knots_3_10.txt`) and should be saved in the same folder as the script or a path in the `class MySettings` should be adjusted. Similarly, if other input files will be used, settings have to be changed. A correction in parsing or reading functions may be also necessary (`check_11_to_15()`, `check_up_to_10()`, `parse_pd_code()`, `parse_knot_name()`).
+
+### Versions
+
+There are two versions of the script in the repository. The version [verbose_periodicity](verbose_periodicity.sage) was used for calculations and tests. The another version - [periodicity.sage](periodicity.sage) - is free of tests fragments and more easy to read.
 
 ### Running in terminal
 
@@ -62,4 +66,4 @@ This project is licensed under the GNU General Public License - see the [LICENSE
 
 ## Contact
 For any questions or remarks please contact us by e-mail message to [maria.marchwicka@amu.edu.pl](maria.marchwicka@amu.edu.pl). We would be happy to hear from you.
-Feel free to ask for any help in case you would like to reuse our script. 
+Feel free to ask for any help in case you would like to reuse our script.
