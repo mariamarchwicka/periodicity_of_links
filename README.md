@@ -34,7 +34,7 @@ We tested all knots up to 15 crossings and for the periodicity 3, 5, 7, 9, 11.
 ### Input data
 
 Files with PD-codes for all knots up to 15 crossing are available in the repository (`knots_11_15.txt` and `knots_3_10.txt`) and should be saved in the same folder as the script or a path in the `class MySettings` should be adjusted. Similarly, if other input files will be used, settings have to be changed. A correction in parsing or reading functions may be also necessary (`check_11_to_15()`, `check_up_to_10()`, `parse_pd_code()`, `parse_knot_name()`).
-Data with PD-codes and HOMFLYPT polynomials are also available as [The Take Home Database](http://katlas.org/wiki/The_Take_Home_Database) at [The Knot Atlas website](http://katlas.org).
+Data with PD-codes and HOMFLYPT polynomials are also available at [KnotInfo: Table of Knot Invariants, http://www.indiana.edu/~knotinfo](http://www.indiana.edu/~knotinfo/).
 
 ### Versions
 
