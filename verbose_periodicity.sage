@@ -36,7 +36,9 @@ class MySettings(object):
         self.f_results_out = os.path.join(os.getcwd(), "results.out")
         self.f_old_results = os.path.join(os.getcwd(), "old_results.input")
 
-        self.periods = [3, 5, 7, 9, 11]
+        self.periods = [9]
+
+        # self.periods = [3, 5, 7, 9, 11]
         self.set_to_check = self.get_set()
 
         # check only knots from defined set
@@ -44,7 +46,7 @@ class MySettings(object):
         self.only_chosen = False
 
         self.debugging = True
-        self.debugging = False
+        # self.debugging = False
 
         # only if debugging
         self.print_matrices = True
@@ -70,7 +72,7 @@ class MySettings(object):
         # self.input_file_with_homflypt = False
 
         self.check_old_results = True
-        self.check_old_results = False
+        # self.check_old_results = False
 
         if self.input_file_with_homflypt:
             if not os.path.isfile(self.f_homfly_lm_in):
@@ -83,7 +85,7 @@ class MySettings(object):
         periodic_burde = set(["3_1", "5_1", "7_1", "8_19", "9_1",
                               "9_35", "9_40", "9_41", "9_47", "9_49",
                               "10_3", "10_123", "10_124"])
-        # set_to_check |= periodic_burde
+        set_to_check |= periodic_burde
 
         # knots that fail Borodzik criterion
         self.fails_dict = {
@@ -353,7 +355,7 @@ class MySettings(object):
                         }
         set_to_check |= set(self.success_dict.keys())
 
-        # knots that are known to be periodic
+        # knots that are known to be (not) periodic
         self.periods_dict = {
                             "3_1": [3],
                             "5_1": [5],
@@ -392,7 +394,7 @@ class MySettings(object):
                             "15a40549": [-5],
                             "15a53966": [-5]
                             }
-        # set_to_check |= set(self.periods_dict.keys())
+        set_to_check |= set(self.periods_dict.keys())
 
         # knots that have Alexander polynomial  = 1
         self.alexander_1 = set(["11n34",
@@ -596,9 +598,11 @@ class MySettings(object):
                                 "15n163337",
                                 "15n165398",
                                 ])
-        # set_to_check |= self.alexander_1
+        set_to_check |= self.alexander_1
 
-        set_to_check = set(["10_123"])
+        set_to_check |= set(["10_123"])
+        set_to_check |= set(["15n166130"])
+        set_to_check = set(self.fails_dict.keys())
 
         return set_to_check
 
@@ -723,16 +727,17 @@ class PeriodicityTester(object):
     def check_murasugi(self, q):
         '''
         Select these delta factors and natural number r such that:
-        delta = delta_prime^q * (1 + t^1 + ... + t^(r-1))^(q-1) mod q
+        delta = delta_prime^q * (1 + t^1 + ... + t^(r-1))^(q-1) mod q_factor
         where "delta_prime" is a delta factor.
         '''
-        quotient_delta = self.delta.change_ring(GF(q))
+        q_factor = factor(q)[0][0]
+        quotient_delta = self.delta.change_ring(GF(q_factor))
         # Underlying polynomial of quotient_delta:
         quotient_delta = quotient_delta.polynomial_construction()[0]
         delta_degree = quotient_delta.degree()
 
         for candidate in self.delta_factors:
-            quotient_candidate = candidate.change_ring(GF(q))
+            quotient_candidate = candidate.change_ring(GF(q_factor))
             power_candidate = quotient_candidate^q
             power_candidate = power_candidate.polynomial_construction()[0]
             # (r - 1) - possible t-polynomial degree
@@ -754,18 +759,19 @@ class PeriodicityTester(object):
         t_delta_factors = [f for f in t_delta_dict.keys()
                            if f != 2 and gcd(q, f) == 1]
         for f in t_delta_factors:
-            f_q = naik_number_dict.setdefault((f, q), get_naik_number(f, q))
-            if not (t_delta_dict[f] / (2 * f_q)).is_integer():
+            q_f = naik_number_dict.setdefault((q, f), get_naik_number(q, f))
+            if not (t_delta_dict[f] / (2 * q_f)).is_integer():
                 return None
         return t_delta_factors
 
     def check_naik_1(self, q):
         '''
         For each delta' find a set P of prime numbers p such that:
-        gcd(p, q) == 1, p != 2 and p| t_delta, t_delta = delta(-1)/delta'(-1).
-        Check if all p factors of t_delta has multiplicity divisible by 2*[p|q].
+        gcd(q, p) == 1, p != 2 and p| t_delta, t_delta = delta(-1)/delta'(-1).
+        Check if all p factors of t_delta has multiplicity divisible by 2*[q|p].
         If it holds for at least one delta' candidate, set naik_1 = True.
         '''
+        # Proposition 2.7.
         delta_evaluated = self.delta(-1)
 
         for delta_prime, _ in self.murasugi_fulfilling:
@@ -780,7 +786,7 @@ class PeriodicityTester(object):
         delta_prime_bases = []
         maximum_in_diagonal = self.get_maximum_in_diagonal()
         for p in p_list:
-            p_q = naik_number_dict[(p, q)]
+            q_p = naik_number_dict[(q, p)]
             bases_for_p_torsion = []
             factor_power = p
             # find all p^k torsion parts
@@ -795,7 +801,7 @@ class PeriodicityTester(object):
                         basis_for_p_k_part.append(0)
                 len_non_zero = sum(x != 0 for x in basis_for_p_k_part)
                 # check if dimension is multiple of 2 * naik_number
-                if not (len_non_zero / (2 * p_q)).is_integer():
+                if not (len_non_zero / (2 * q_p)).is_integer():
                     return None
                 factor_power *= p
                 bases_for_p_torsion.append(basis_for_p_k_part)
@@ -812,6 +818,7 @@ class PeriodicityTester(object):
         In particular naik_2 is set to be -1 if the criterion passes,
         but only in cases where P is an empty set.
         '''
+        # Proposition 2.8.
         for delta_prime, p_list in self.naik_1_fulfilling:
             delta_prime_factors = set([d[0] for d in factor(delta_prime(-1))])
             p_list = [p for p in p_list if p not in delta_prime_factors]
@@ -860,7 +867,7 @@ class PeriodicityTester(object):
         episilon_1 = 1, else: episilon_1 = -1.
         If p == 3 mod(4) and a rank of p^k torsion part n == 2 mod(4), then:
         epsilon_2 = -1, else: epsilon_2 = 1.
-        eta = naik_sign ^ d, where  d = n / (2 * [p, q]).
+        eta = naik_sign^d, where  d = n / (2 * [p, q]).
         If p^([p, q]) % q == 1, then: naik_sign = 1, else: naik_sign = -1.
         '''
         for k, p_k_basis in enumerate(bases):
@@ -883,10 +890,10 @@ class PeriodicityTester(object):
             if not mod(P_det, p).is_square():
                 epsilon *= -1  # epsilon = epsilon_1 * epsilon_2
 
-            p_q = naik_number_dict[(p, q)]
-            d = n / (2 * p_q)
-            # sign(p_q) - whether rest is -1 or 1
-            if sign(p_q)^d != epsilon:
+            q_p = naik_number_dict[(q, p)]
+            d = n / (2 * q_p)
+            # sign(q_p) - whether rest is -1 or 1
+            if sign(q_p)^d != epsilon:
                 return False
         return True
 
@@ -1070,7 +1077,7 @@ class PeriodicityTester(object):
             if not p_list:
                 print "List of factors was empty."
             for p in p_list:
-                g = abs(naik_number_dict[(p, q)])
+                g = abs(naik_number_dict[(q, p)])
                 print "factor of del/del'(-1): " + str(p)
                 print "Naik number: " + str(g)
                 print "2 * Naik number:\t" + str(2 * g)
@@ -1117,7 +1124,7 @@ class PeriodicityTester(object):
 
             for p, bases_for_p in delta_prime_bases:
                 print "\nfactor p for delta prime:\t\t\t" + str(p)
-                g = abs(naik_number_dict[(p, q)])
+                g = abs(naik_number_dict[(q, p)])
                 print "Naik number:\t\t" + str(g)
                 print "2 * Naik number:\t" + str(2 * g)
                 test_naik_number = p^g % q
@@ -1210,11 +1217,11 @@ class PeriodicityTester(object):
 
         # epsilon and eta
         print "epsilon = epsilon_1 * epsilon_2 = " + str(epsilon_1 * epsilon_2)
-        p_q = naik_number_dict[(p, q)]
-        d = n / (2 * abs(p_q))
-        print "\nnaik_sign = " + str(sign(p_q))
-        print "eta = naik_sign^d = " + str(sign(p_q)^d)
-        if sign(p_q)^d == epsilon_1 * epsilon_2:
+        q_p = naik_number_dict[(q, p)]
+        d = n / (2 * abs(q_p))
+        print "\nnaik_sign = " + str(sign(q_p))
+        print "eta = naik_sign^d = " + str(sign(q_p)^d)
+        if sign(q_p)^d == epsilon_1 * epsilon_2:
             print "eta == epsilon\n"
         else:
             print "eta != epsilon\n"
@@ -1306,9 +1313,9 @@ def check_criteria(name, pd_code, f_homfly_in=None):
     return tester
 
 
-def get_naik_number(p, q):
+def get_naik_number(q, p):
     '''
-    Calculate the smallest integer i such that p^i == +/-1 mod q.
+    Calculate the smallest integer i = [q, p] such that p^i == +/-1 mod q.
     Signum of i shows whether rest is -1 or 1
     '''
     if gcd(q, p) > 1:
@@ -1389,10 +1396,28 @@ if __name__ == '__main__':
     R.<t> = LaurentPolynomialRing(ZZ)
     prime_numbers = Primes()
     naik_number_dict = {}
-    if not os.path.isfile(settings.f_old_results):
-        f = open(settings.f_old_results, 'w+')
+
+    if not os.path.isfile(settings.f_old_results) \
+       or not settings.check_old_results:
         settings.check_old_results = False
-        f.close()
+        if settings.save_homfly and settings.input_file_with_homflypt:
+            with open(settings.f_results_out, 'w') as f_out,\
+                 open(settings.f_homfly_lm_out, 'w') as f_homfly_out,\
+                 open(settings.f_homfly_lm_in, 'r') as f_homfly_in:
+                test_all(f_out, f_homfly_out, f_homfly_in)
+        elif settings.save_homfly:
+            with open(settings.f_results_out, 'w') as f_out,\
+                 open(settings.f_homfly_lm_out, 'w') as f_homfly_out:
+                test_all(f_out, f_homfly_out)
+        elif settings.input_file_with_homflypt:
+            with open(settings.f_results_out, 'w') as f_out,\
+                 open(settings.f_homfly_lm_in, 'r') as f_homfly_in:
+                test_all(f_out, None, f_homfly_in)
+        else:
+            with open(settings.f_results_out, 'w') as f_out:
+                test_all(f_out)
+        sys.exit()
+
     with open(settings.f_old_results, 'r') as f_old_results:
         if settings.save_homfly and settings.input_file_with_homflypt:
             with open(settings.f_results_out, 'w') as f_out,\
