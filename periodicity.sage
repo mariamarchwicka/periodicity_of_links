@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 # Copyright (c) 2018: Maria Marchwicka, Wojciech Politarczyk.
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,11 +33,6 @@ class MySettings(object):
         self.f_results_out = os.path.join(os.getcwd(), "results.out")
 
         self.periods = [3, 5, 7, 9, 11]
-        self.set_to_check = self.get_set()
-
-        # check only knots from defined set
-        self.only_chosen = True
-        self.only_chosen = False
 
 
         self.print_results = False
@@ -51,17 +48,15 @@ class MySettings(object):
                 warnings.warn("No input file with HOMFLYPT polynomials")
                 self.input_file_with_homflypt = False
 
-    def get_set(self):
 
-        set_to_check = set()
-        return set_to_check
+
+
 
 
 class PeriodicityTester(object):
 
     def __init__(self, name, pd_code, A=None, f_homfly_in=None):
 
-        self.results = []
         '''
         To results for each period q a list in following form will be appended:
         [q, murasugi, naik_1, naik_2, borodzik, przytycki]
@@ -74,6 +69,7 @@ class PeriodicityTester(object):
         0 if previous criterion in the list is 0.
         '''
 
+        self.results = []
         self.name = name
         self.pd_code = pd_code
 
@@ -85,7 +81,7 @@ class PeriodicityTester(object):
             self.seifert = self.K.seifert_matrix()
         else:
             self.seifert = A
-        # delta := Alexander polynomial
+        # delta is the normalized Alexander polynomial
         delta = (self.seifert.transpose() - t * self.seifert).determinant()
         self.delta = delta.shift(-delta.exponents()[0])
         self.delta_factors = self.set_delta_factors()
@@ -135,6 +131,8 @@ class PeriodicityTester(object):
 
     def set_delta_factors(self):
         # find all delta (alexander polynomial) factors
+        if self.delta == 1:
+            return [1]
         lst_of_factors = [[f[0]] * f[1] for f in self.delta.factor()]
         # flattening a list
         lst_of_factors = [el for sublist in lst_of_factors for el in sublist]
@@ -199,8 +197,8 @@ class PeriodicityTester(object):
         t_delta_factors = [f for f in t_delta_dict.keys()
                            if f != 2 and gcd(q, f) == 1]
         for f in t_delta_factors:
-            f_q = naik_number_dict.setdefault((f, q), get_naik_number(f, q))
-            if not (t_delta_dict[f] / (2 * f_q)).is_integer():
+            q_f = naik_number_dict.setdefault((q, f), get_naik_number(q, f))
+            if not (t_delta_dict[f] / (2 * q_f)).is_integer():
                 return None
         return t_delta_factors
 
@@ -208,7 +206,7 @@ class PeriodicityTester(object):
         '''
         For each delta' find a set P of prime numbers p such that:
         gcd(p, q) == 1, p != 2 and p| t_delta, t_delta = delta(-1)/delta'(-1).
-        Check if all p factors of t_delta has multiplicity divisible by 2*[p|q].
+        Check if all p factors of t_delta has multiplicity divisible by 2*[q|p].
         If it holds for at least one delta' candidate, set naik_1 = True.
         '''
         delta_evaluated = self.delta(-1)
@@ -225,7 +223,7 @@ class PeriodicityTester(object):
         delta_prime_bases = []
         maximum_in_diagonal = self.get_maximum_in_diagonal()
         for p in p_list:
-            p_q = naik_number_dict[(p, q)]
+            q_p = naik_number_dict[(q, p)]
             bases_for_p_torsion = []
             factor_power = p
             # find all p^k torsion parts
@@ -240,7 +238,7 @@ class PeriodicityTester(object):
                         basis_for_p_k_part.append(0)
                 len_non_zero = sum(x != 0 for x in basis_for_p_k_part)
                 # check if dimension is multiple of 2 * naik_number
-                if not (len_non_zero / (2 * p_q)).is_integer():
+                if not (len_non_zero / (2 * q_p)).is_integer():
                     return None
                 factor_power *= p
                 bases_for_p_torsion.append(basis_for_p_k_part)
@@ -257,6 +255,7 @@ class PeriodicityTester(object):
         In particular naik_2 is set to be -1 if the criterion passes,
         but only in cases where P is an empty set.
         '''
+        # Proposition 2.8.
         for delta_prime, p_list in self.naik_1_fulfilling:
             delta_prime_factors = set([d[0] for d in factor(delta_prime(-1))])
             p_list = [p for p in p_list if p not in delta_prime_factors]
@@ -290,7 +289,7 @@ class PeriodicityTester(object):
             borodzik_pass = True
             for p, bases_for_p in delta_prime_bases:
                 # if len(bases_for_p) > 1:
-                #     print "HURA"  # more than one p^k part - not found yet
+                #     print("HURA")  # more than one p^k part - not found yet
                 if not self.check_borodzik_candidate(q, p, bases_for_p):
                     borodzik_pass = False
                     break
@@ -305,8 +304,8 @@ class PeriodicityTester(object):
         episilon_1 = 1, else: episilon_1 = -1.
         If p == 3 mod(4) and a rank of p^k torsion part n == 2 mod(4), then:
         epsilon_2 = -1, else: epsilon_2 = 1.
-        eta = naik_sign ^ d, where  d = n / (2 * [p, q]).
-        If p^([p, q]) % q == 1, then: naik_sign = 1, else: naik_sign = -1.
+        eta = naik_sign ^ d, where  d = n / (2 * [q, p]).
+        If p^([q, p]) % q == 1, then: naik_sign = 1, else: naik_sign = -1.
         '''
         for k, p_k_basis in enumerate(bases):
             X = np.diagflat(p_k_basis)
@@ -328,10 +327,10 @@ class PeriodicityTester(object):
             if not mod(P_det, p).is_square():
                 epsilon *= -1  # epsilon = epsilon_1 * epsilon_2
 
-            p_q = naik_number_dict[(p, q)]
-            d = n / (2 * p_q)
-            # sign(p_q) - whether rest is -1 or 1
-            if sign(p_q)^d != epsilon:
+            q_p = naik_number_dict[(q, p)]
+            d = n / (2 * q_p)
+            # sign(q_p) - whether rest is -1 or 1
+            if sign(q_p)^d != epsilon:
                 return False
         return True
 
@@ -351,57 +350,57 @@ class PeriodicityTester(object):
 
     def print_results(self):
 
-        print "\n" + "#" * 15 + " " + str(self.name) + " " + "#" * 15
+        print("\n" + "#" * 15 + " " + str(self.name) + " " + "#" * 15)
 
         for result in self.results:
 
             q = result[0]
-            print
+            print()
             self.print_przytycki_result(q, result[5])
 
             if result[1] == 2:
-                print "Alexander polynomial is 1"
+                print("Alexander polynomial is 1")
                 continue
 
             if not result[1]:
-                print "\t\tMurasugi: fail, q = " + str(q)
+                print("\t\tMurasugi: fail, q = " + str(q))
                 continue
 
-            print "Murasugi: pass, q = " + str(q)
+            print("Murasugi: pass, q = " + str(q))
 
             if not result[2]:
-                print "\t\tNaik 1: fail, q = " + str(q)
+                print("\t\tNaik 1: fail, q = " + str(q))
                 continue
 
-            print "Naik 1: pass, q = " + str(q)
+            print("Naik 1: pass, q = " + str(q))
 
             if not result[3]:
-                print "\t\tNaik 2: fail, q = " + str(q)
+                print("\t\tNaik 2: fail, q = " + str(q))
                 continue
 
             if result[3] == -1:
-                print "Naik 2: not applicable, q = " + str(q)
+                print("Naik 2: not applicable, q = " + str(q))
                 continue
 
-            print "Naik 2: pass, q = " + str(q)
+            print("Naik 2: pass, q = " + str(q))
 
             if not result[4]:
-                print ("\t\tBorodzik: fail, q = " + str(q))
+                print("\t\tBorodzik: fail, q = " + str(q))
                 continue
 
             if result[4] == -1:
-                print ("Borodzik: not applicable, q = " + str(q))
+                print("Borodzik: not applicable, q = " + str(q))
                 continue
 
-            print ("Borodzik: pass, q = " + str(q))
+            print("Borodzik: pass, q = " + str(q))
 
     def print_przytycki_result(self, q, result):
         if not result:
-            print "\t\tPrzytycki: fail, q = " + str(q)
+            print("\t\tPrzytycki: fail, q = " + str(q))
         elif result == -1:
-            print "Przytycki: not applicable, q = " + str(q)
+            print("Przytycki: not applicable, q = " + str(q))
         else:
-            print "Przytycki: pass, q = " + str(q)
+            print("Przytycki: pass, q = " + str(q))
 
 
 class PrzytyckiTester(object):
@@ -452,19 +451,20 @@ def check_criteria(name, pd_code, f_homfly_in=None):
     return tester
 
 
-def get_naik_number(p, q):
+
+def get_naik_number(q, p):
     '''
-    Calculate the smallest integer i such that p^i == +/-1 mod q.
+    Calculate the smallest integer i = [q, p] such that p^i == +/-1 mod q.
     Signum of i shows whether rest is -1 or 1
     '''
     if gcd(q, p) > 1:
         return 0
     p_power = p
-    for i in xrange(1, sys.maxint):
-        pq = p_power % q
-        if pq == 1:
+    for i in range(1, sys.maxsize):
+        qp = p_power % q
+        if qp == 1:
             return i
-        if pq == q - 1:
+        if qp == q - 1:
             return -i
         p_power *= p
 
@@ -500,9 +500,8 @@ def check_11_to_15(f_out, f_homfly_out=None, f_homfly_in=None):
             pd_code = parse_pd_code(f.readline())
             line = f.readline()
             tester = check_criteria(name, pd_code, f_homfly_in)
-            if tester is None:
-                continue
-            tester.save_results(f_out)
+            if tester is not None:
+                tester.save_results(f_out)
 
 
 def check_up_to_10(f_out, f_homfly_in=None):
@@ -514,16 +513,23 @@ def check_up_to_10(f_out, f_homfly_in=None):
             pd_code = parse_pd_code(str(line[1]))
             line = f.readline()
             tester = check_criteria(name, pd_code, f_homfly_in)
-            if tester is None:
-                continue
-            tester.save_results(f_out)
+            if tester is not None:
+                tester.save_results(f_out)
 
 
 def test_all(f_out, f_homfly_in=None):
     check_up_to_10(f_out, f_homfly_in)
-    if f_out is not None:
-        f_out.flush()
+    f_out.flush()
     check_11_to_15(f_out, f_homfly_in)
+
+def main():
+    if settings.input_file_with_homflypt:
+        with open(settings.f_results_out, 'w') as f_out,\
+             open(settings.f_homfly_lm_in, 'r') as f_homfly_in:
+            test_all(f_out, f_homfly_in)
+    else:
+        with open(settings.f_results_out, 'w') as f_out:
+            test_all(f_out)
 
 
 if __name__ == '__main__':
@@ -533,10 +539,10 @@ if __name__ == '__main__':
     R.<t> = LaurentPolynomialRing(ZZ)
     prime_numbers = Primes()
     naik_number_dict = {}
-    if settings.input_file_with_homflypt:
-        with open(settings.f_results_out, 'w') as f_out,\
-             open(settings.f_homfly_lm_in, 'r') as f_homfly_in:
-            test_all(f_out, f_homfly_in)
-    else:
-        with open(settings.f_results_out, 'w') as f_out:
-            test_all(f_out)
+    if '__file__' in globals():
+        main()
+else:
+    S.<a, z> = LaurentPolynomialRing(ZZ)
+    R.<t> = LaurentPolynomialRing(ZZ)
+    prime_numbers = Primes()
+    naik_number_dict = {}
