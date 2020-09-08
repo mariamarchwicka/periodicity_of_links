@@ -27,7 +27,7 @@ We tested all knots up to 15 crossings and for the periodicity 3, 5, 7, 9, 11.
 
 ### Prerequisites
 
-- [SageMath 8.1](http://www.sagemath.org).
+- [SageMath 9.0](http://www.sagemath.org).
 
 - For Przytycki's criterion the module [libhomfly](https://github.com/miguelmarco/libhomfly/blob/master/README.md) is needed to calculate HOMFLYPT polynomial. There is also possibility to read saved polynomials from a file. The file [homflypt.input](homflypt.input) in the repository contains HOMFLYPTY polynomials for some knots, but to make it work properly knots should be analyse in the same order as their polynomials are saved in the file [homflypt.input](homflypt.input).
 
@@ -38,7 +38,7 @@ Data with PD-codes and HOMFLYPT polynomials are also available at [KnotInfo: Tab
 
 ### Versions
 
-There are two versions of the script in the repository. The version [verbose_periodicity.sage](verbose_periodicity.sage) was used for calculations and tests. The another version - [periodicity.sage](periodicity.sage) - is free of tests fragments and more easy to read.
+There are two scripts in the repository. [verbose_periodicity.sage](verbose_periodicity.sage) was used for calculations and tests and depends on [periodicity.sage](periodicity.sage).
 
 ### Running in terminal
 
